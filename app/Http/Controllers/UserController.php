@@ -127,10 +127,10 @@ class UserController extends Controller
      */
     public function update(Request $request, $id)
     {
-
         if(!\Helper::Usercan($id, 'user.index')){
             return redirect()->route('dashboard');
         }
+        
         // dump($request);
         // dump($id);
         // die();
@@ -142,27 +142,16 @@ class UserController extends Controller
 
     	//validar los datos del formulario
     	$validate = $this->validate($request,[
+            'document_type' => ['required', 'string', 'max:45'],
+            'document' => ['required', 'integer', 'min:8', 'unique:users,document,{$id}'],
             'name' => ['string', 'max:255'],
     		'email' => ['string', 'email', 'max:255', "unique:users,email,{$id}"],
     		'password' => ['confirmed']
     	]);
-        
-        // si usuario  puede , o, el mismo usuario no tiene , actualizalos
-        // if($userAuth->tienepermiso || !$user->document){}
-        if($userAuth->hasPermissionTo('user.index') || !$user->document){
-            $validate = $this->validate($request,[
-                'document_type' => ['required', 'string', 'max:45'],
-                'document' => ['required', 'integer', 'min:8', 'unique:users'],
-            ]);
-
-            $document = $request->input('document');
-            $document_type = $request->input('document_type');
-
-            $user->document = $document;
-            $user->document_type = $document_type;
-        }
 
     	//recojer datos del formulario
+        $document = $request->input('document');
+        $document_type = $request->input('document_type');
     	$name =	$request->input('name');
     	$email =	$request->input('email');
 
@@ -171,6 +160,8 @@ class UserController extends Controller
         }
 
         //asignar nuevos valores al objeto de usuarios
+        $user->document = $document;
+        $user->document_type = $document_type;
     	$user->name = $name;
     	$user->email =  $email;
         if(isset($password)){
